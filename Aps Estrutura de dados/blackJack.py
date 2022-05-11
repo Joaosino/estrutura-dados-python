@@ -1,112 +1,159 @@
 import random
+import string
 import sys
 
-valores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]*4
-naipe = ['♥','♦','♣','♠']
+# Duas cartas iniciais
+# Ás vale 1 ou 11
+# J, K e Q valem 10
+# https://stackoverflow.com/questions/69946172/how-can-i-print-my-ascii-cards-side-by-side
 
-copas = []
-paus = []
-ouros = []
-espadas = []
-maos = {copas, paus, ouros, espadas}
 
-def carta_real(v,n): # v de valor e n de naipe.
+valores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+naipe = ['♥', '♦', '♣', '♠']
+cartas_do_baralho = []
+
+
+for v in valores:
+    cartas_do_baralho.append(str(v) + '♥')
+    cartas_do_baralho.append(str(v) + '♦')
+    cartas_do_baralho.append(str(v) + '♣')
+    cartas_do_baralho.append(str(v) + '♠')
+
+
+def jogo():
+    print("\nBem vindo ao jogo de BlackJack.")
+    escolha = int(input("\nDigite 1 para começar ou 0 para voltar: "))
+    if escolha == 1:
+        jogada_cpu(cartas_do_baralho)
+        jogada(cartas_do_baralho)
+
+    else:
+        import menuAps
+        menuAps.menu()
+
+
+def jogada(cartas_do_baralho):
+    cartas_jogador = []
+    print("\n\nSuas cartas:")
+    for i in range(2):
+        carta = random.choice(cartas_do_baralho)
+        cartas_do_baralho.remove(carta)
+        cartas_jogador.append(carta)
+        valor = str(carta).strip("♥♦♣♠")
+        naipe = carta[-1]
+        desenha_carta(valor, naipe)
+    continua = int(
+        input("Deseja continuar? \nDigite 1 para continuar e 0 para parar: "))
+    if continua == 1:
+        pedir_carta(carta, cartas_do_baralho, cartas_jogador)
+    else:
+        global pontos_jogador
+        pontos_jogador = conta_carta(
+            carta, cartas_jogador, string='total jogador')
+        global pontos_cpu
+        ver_ganhador(pontos_jogador, pontos_cpu)
+
+
+def jogada_cpu(cartas_do_baralho):
+    cartas_cpu = []
+    contador = 0
+    print("\n\nCartas do adversário:")
+    while contador < 17:
+        carta = random.choice(cartas_do_baralho)
+        cartas_do_baralho.remove(carta)
+        cartas_cpu.append(carta)
+        valor = str(carta.strip("♥♦♣♠"))
+        naipe = carta[-1]
+        desenha_carta(valor, naipe)
+        contador = conta_carta(carta, cartas_cpu, string='Total Cpu')
+    global pontos_cpu
+    pontos_cpu = conta_carta(carta, cartas_cpu, string='total cpu')
+
+
+def desenha_carta(v, n):  # v de valor e n de naipe.
+    if v == '11':
+        v = 'J'
+    elif v == '12':
+        v = 'Q'
+    elif v == '13':
+        v = 'K'
+    elif v == '1':
+        v = 'A'
+    if len(v) == 1:
+        v = (v + " ")
     print(" _____________________")
     print("|                     |")
-    print(f"|  {v}                  |")
+    print(f"|  {v}                 |")
     print(f"|  {n}                  |")
     print("|                     |")
     print("|                     |")
     print("|                     |")
-    print(f"|         {n}           |")
+    print(f"|          {n}          |")
     print("|                     |")
     print("|                     |")
     print("|                     |")
     print(f"|                  {n}  |")
-    print(f"|                  {v}  |")
+    print(f"|                  {v} |")
     print("|_____________________|")
 
-def jogo():
-  print("Bem vindo ao jogo de BlackJack.")
-  escolha = int(input("\nDigite 1 para começar ou 0 para voltar: "))
-  if escolha == 1:
-    jogada(valores)
-  else:
-    import menuAps
-    menuAps.menuInicial()
+# print("\n".join(map('  '.join, zip(*(desenha_carta(v, n))))))
 
-def jogada(valores):
-  mão = []
-  for i in range(52):
-    val = random.choice(valores)
-    print(val)
-    if val == 11:
-      val = 'J'
-    elif val == 12:
-      val = 'Q'
-    elif val == 13:
-      val = 'K'
-    elif val == 1:
-      val = 'A'
-    for n in naipe:
-      random.shuffle(naipe)
-    carta = str(val) + n
-    if carta not in mão:
-      mão.append(carta)
-    if carta in mão:
-      random.shuffle(naipe)
-      print(carta)
-      if val in valores:
-        valores.remove(val)
-  print(mão)
-  print(valores)
-  print(len(mão))
 
-def carta_extra():
-  mao = []
-  cartas_extras = 0
-  while cartas_extras < 2:
-    print("Você gostaria de uma carta extra?")
-    escolha = int(input("Digite 1 para sim ou 2 para não: "))
-    if escolha == 1:
-      cartas_extras += 1
-      val = valores.pop()
-      if val == 11:
-        val = 'J'
-      elif val == 12:
-        val = 'Q'
-      elif val == 13:
-        val = 'K'
-      elif val == 1:
-        val = 'A'
-      mao.append(val)
-      print(mao)
+def pedir_carta(carta, cartas_do_baralho, cartas_na_mao):
+    carta = random.choice(cartas_do_baralho)
+    cartas_do_baralho.remove(carta)
+    cartas_na_mao.append(carta)
+    valor = str(carta).strip("♥♦♣♠")
+    naipe = carta[-1]
+    desenha_carta(valor, naipe)
+    continua = int(
+        input("Deseja continuar? \nDigite 1 para continuar e 0 para parar: "))
+    if continua == 1:
+        pedir_carta(carta, cartas_do_baralho, cartas_na_mao)
     else:
-      resultado(mao)
+        global pontos_jogador
+        pontos_jogador = conta_carta(
+            carta, cartas_na_mao, string='total jogador')
+        global pontos_cpu
+        ver_ganhador(pontos_jogador, pontos_cpu)
 
-def resultado(mao):
-  resultado = 0
-  for resultado in mao:
-    if val == 'J':
-      resultado += 11
-    elif val == 'Q':
-      resultado += 12
-    elif val == 'K':
-      resultado += 13
-    elif val == 'A':
-      resultado += 1
+
+def conta_carta(carta, cartas_na_mao, string):
+    total_jogador = 0
+    for carta in cartas_na_mao:
+        carta = carta.strip("♥♦♣♠")
+        carta = int(carta)
+        if carta == 11:
+            carta = 10
+        if carta == 12:
+            carta = 10
+        if carta == 13:
+            carta = 10
+        if carta == 1:
+            if total_jogador < 11:
+                carta = 11
+            else:
+                carta = 1
+        total_jogador += carta
+    print(total_jogador, string)
+    return total_jogador
+
+
+def ver_ganhador(jogador, cpu):
+    if jogador == cpu:
+        print("Empate!")
+    elif jogador > 21 and cpu > 21:
+        print("Empate!")
+    elif jogador > cpu:
+        if jogador <= 21:
+            print("Você venceu!")
+        else:
+            print("Você perdeu!")
     else:
-      resultado += val
-    print(f"A soma das cartas da sua mão é {resultado}")
+        if cpu <= 21:
+            print("Você perdeu!")
+        else:
+            print("Você venceu!")
 
 
 jogo()
-
-# while True:
-#    carta_extra = int(input("Você gostaria de comprar uma carta extra? \nDigite 1 para sim\nDigite 2 para não\n"))
- #   if carta_extra == 1:
-  #      break
-
-
-
-# print(f"\nA sua primeira carta é um {X} de {naipe_1}")
